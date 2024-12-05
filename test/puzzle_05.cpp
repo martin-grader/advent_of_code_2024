@@ -32,6 +32,8 @@ TEST(puzzle_05, test_example) {
         {75,13},
         {53,13},
      };
-  EXPECT_EQ(get_result(numbers, order_rules), 143);
+    std::tuple<int, int> results = get_result(numbers, order_rules);
+    EXPECT_EQ(std::get<0>(results), 143);
+    EXPECT_EQ(std::get<1>(results), 123);
 }
 
