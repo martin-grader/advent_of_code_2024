@@ -10,6 +10,7 @@ def aoc_2024_cc_binary(number):
         copts = [
             "-Wall",
             "-std=c++17",
+            "-Wno-trigraphs",
             ],
     )
 def aoc_2024_cc_library(number):
@@ -31,5 +32,6 @@ def aoc_2024_cc_test(number):
         copts = [
             "-Wall",
             "-std=c++17",
+            "-Wno-trigraphs",
             ],
     )
