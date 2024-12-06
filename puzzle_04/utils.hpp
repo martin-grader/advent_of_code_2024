@@ -6,7 +6,7 @@
 
 class MatchesInString {
   public:
-    MatchesInString(std::string key, std::string s) {
+    MatchesInString(const std::string &key, const std::string &s) {
         std::string::size_type pos = 0;
         while ((pos = s.find(key, pos)) != std::string::npos) {
             matches++;
@@ -23,7 +23,7 @@ class MatchesInString {
     std::vector<int> match_mid_positions{};
 };
 
-int get_hotizontal_matches(std::vector<std::string> puzzle, std::string key) {
+int get_hotizontal_matches(const std::vector<std::string> &puzzle, const std::string &key) {
     int matches{0};
     for (std::string line : puzzle) {
         MatchesInString m(key, line);
@@ -32,7 +32,7 @@ int get_hotizontal_matches(std::vector<std::string> puzzle, std::string key) {
     return matches;
 }
 
-int get_vertical_matches(std::vector<std::string> puzzle, std::string key) {
+int get_vertical_matches(const std::vector<std::string> &puzzle, const std::string &key) {
     int matches{0};
     const int index = puzzle[0].size();
     for (int i = 0; i < index; i++) {
@@ -48,7 +48,7 @@ int get_vertical_matches(std::vector<std::string> puzzle, std::string key) {
 
 class CrossMatchesInterface {
   public:
-    CrossMatchesInterface(std::vector<std::string> puzzle, std::string key)
+    CrossMatchesInterface(const std::vector<std::string> &puzzle, const std::string &key)
         : offset(key.size()), rows(puzzle.size()), columns(puzzle[0].size()), puzzle(puzzle), key(key) {}
     int get_matches() {
         init(puzzle, key);
@@ -60,7 +60,7 @@ class CrossMatchesInterface {
     };
 
   protected:
-    void init(std::vector<std::string> puzzle, std::string key) {
+    void init(const std::vector<std::string> &puzzle, const std::string &key) {
         for (int row = get_rows_to_start(); row < get_rows_to_end(); row++) {
             for (int col = 0; col < columns - offset + 1; col++) {
                 std::string lrtd_line{};
@@ -91,7 +91,8 @@ class CrossMatchesInterface {
 
 class RightLeftCrossMatches : public CrossMatchesInterface {
   public:
-    RightLeftCrossMatches(std::vector<std::string> puzzle, std::string key) : CrossMatchesInterface(puzzle, key){};
+    RightLeftCrossMatches(const std::vector<std::string> &puzzle, const std::string &key)
+        : CrossMatchesInterface(puzzle, key){};
 
   protected:
     int get_rows_to_start() override { return offset - 1; };
@@ -101,7 +102,8 @@ class RightLeftCrossMatches : public CrossMatchesInterface {
 
 class LeftRightCrossMatches : public CrossMatchesInterface {
   public:
-    LeftRightCrossMatches(std::vector<std::string> puzzle, std::string key) : CrossMatchesInterface(puzzle, key){};
+    LeftRightCrossMatches(const std::vector<std::string> &puzzle, const std::string &key)
+        : CrossMatchesInterface(puzzle, key){};
 
   protected:
     int get_rows_to_start() override { return 0; };
@@ -109,7 +111,7 @@ class LeftRightCrossMatches : public CrossMatchesInterface {
     int get_next_cross_row(int row, int offset) override { return row + offset; };
 };
 
-int get_results_all_alignements(std::vector<std::string> puzzle, std::string key) {
+int get_results_all_alignements(const std::vector<std::string> &puzzle, std::string key) {
     int matches{0};
     matches += get_hotizontal_matches(puzzle, key);
     matches += get_vertical_matches(puzzle, key);
@@ -120,7 +122,7 @@ int get_results_all_alignements(std::vector<std::string> puzzle, std::string key
     return matches;
 }
 
-int get_all_occurances(std::vector<std::string> puzzle, std::string key) {
+int get_all_occurances(const std::vector<std::string> &puzzle, std::string key) {
     int matches{0};
     matches += get_results_all_alignements(puzzle, key);
     std::reverse(key.begin(), key.end());
@@ -128,7 +130,8 @@ int get_all_occurances(std::vector<std::string> puzzle, std::string key) {
     return matches;
 }
 
-int get_n_matching_positions(std::vector<std::tuple<int, int>> left, std::vector<std::tuple<int, int>> right) {
+int get_n_matching_positions(const std::vector<std::tuple<int, int>> &left,
+                             const std::vector<std::tuple<int, int>> &right) {
     int matches{0};
     for (std::tuple<int, int> left_subs : left) {
         auto it = std::find(right.begin(), right.end(), left_subs);
@@ -139,17 +142,17 @@ int get_n_matching_positions(std::vector<std::tuple<int, int>> left, std::vector
     return matches;
 }
 
-int get_star_shaped_occurances(std::vector<std::string> puzzle, std::string key) {
+int get_star_shaped_occurances(const std::vector<std::string> &puzzle, std::string key) {
     int matches{0};
     RightLeftCrossMatches rlc_m(puzzle, key);
     LeftRightCrossMatches lrc_m(puzzle, key);
     std::reverse(key.begin(), key.end());
     RightLeftCrossMatches rlc_rev_m(puzzle, key);
     LeftRightCrossMatches lrc_rev_m(puzzle, key);
-    std::vector<std::tuple<int, int>> rlc_mid_positions = rlc_m.get_match_mid_positions();
-    std::vector<std::tuple<int, int>> lrc_mid_positions = lrc_m.get_match_mid_positions();
-    std::vector<std::tuple<int, int>> rlc_rev_mid_positions = rlc_rev_m.get_match_mid_positions();
-    std::vector<std::tuple<int, int>> lrc_rev_mid_positions = lrc_rev_m.get_match_mid_positions();
+    const std::vector<std::tuple<int, int>> rlc_mid_positions = rlc_m.get_match_mid_positions();
+    const std::vector<std::tuple<int, int>> lrc_mid_positions = lrc_m.get_match_mid_positions();
+    const std::vector<std::tuple<int, int>> rlc_rev_mid_positions = rlc_rev_m.get_match_mid_positions();
+    const std::vector<std::tuple<int, int>> lrc_rev_mid_positions = lrc_rev_m.get_match_mid_positions();
     matches += get_n_matching_positions(rlc_mid_positions, lrc_mid_positions);
     matches += get_n_matching_positions(rlc_mid_positions, lrc_rev_mid_positions);
     matches += get_n_matching_positions(rlc_rev_mid_positions, lrc_rev_mid_positions);

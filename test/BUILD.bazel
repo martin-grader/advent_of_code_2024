@@ -1,4 +1,5 @@
 load("//:aoc_2024.bzl", "aoc_2024_cc_test")
 
+aoc_2024_cc_test("01")
 aoc_2024_cc_test("04")
 aoc_2024_cc_test("05")
