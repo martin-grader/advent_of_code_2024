@@ -1,5 +1,6 @@
-#include "puzzle_05/utils.hpp"
 #include <gtest/gtest.h>
+
+#include "puzzle_05/utils.hpp"
 
 TEST(puzzle_05, test_example) {
     std::vector<std::vector<int>> numbers = {{75, 47, 61, 53, 29}, {97, 61, 53, 29, 13}, {75, 29, 13},

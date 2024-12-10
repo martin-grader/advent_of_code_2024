@@ -1,9 +1,7 @@
+#include <iostream>
+
 #include "puzzle_07/puzzle.hpp"
 #include "puzzle_07/utils.hpp"
-#include <array>
-#include <iostream>
-#include <string>
-#include <vector>
 
 int main() {
     const puzzle_type puzzle = get_puzzle();

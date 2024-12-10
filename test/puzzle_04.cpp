@@ -1,5 +1,6 @@
-#include "puzzle_04/utils.hpp"
 #include <gtest/gtest.h>
+
+#include "puzzle_04/utils.hpp"
 
 TEST(puzzle_04, test_all_occurances) {
     std::vector<std::string> puzzle = {

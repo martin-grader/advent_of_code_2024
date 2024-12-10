@@ -1,9 +1,8 @@
-#include "puzzle_03/puzzle.hpp"
-#include "puzzle_03/utils.hpp"
-#include <array>
 #include <iostream>
 #include <string>
-#include <vector>
+
+#include "puzzle_03/puzzle.hpp"
+#include "puzzle_03/utils.hpp"
 
 int main() {
     const std::string puzzle = get_puzzle();

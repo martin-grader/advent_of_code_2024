@@ -1,8 +1,8 @@
-#include "array"
-#include "puzzle_07/utils.hpp"
 #include "tuple"
 #include "vector"
 #include <gtest/gtest.h>
+
+#include "puzzle_07/utils.hpp"
 
 TEST(puzzle_07, test_pussle0) {
     std::vector<std::tuple<long int, std::vector<long int>>> puzzle = {

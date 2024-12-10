@@ -1,7 +1,8 @@
 #include "array"
-#include "puzzle_01/utils.hpp"
 #include "vector"
 #include <gtest/gtest.h>
+
+#include "puzzle_01/utils.hpp"
 
 TEST(puzzle_01, test_distance) {
     std::vector<std::array<int, 2>> puzzle = {

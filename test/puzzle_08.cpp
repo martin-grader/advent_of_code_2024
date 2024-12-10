@@ -1,7 +1,6 @@
-#include "array"
-#include "puzzle_08/utils.hpp"
-#include "vector"
 #include <gtest/gtest.h>
+
+#include "puzzle_08/utils.hpp"
 
 TEST(puzzle_08, test_antinodes) {
     std::vector<std::string> puzzle = {

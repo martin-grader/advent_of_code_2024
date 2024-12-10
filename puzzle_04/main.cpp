@@ -1,7 +1,8 @@
-#include "puzzle_04/puzzle.hpp"
-#include "puzzle_04/utils.hpp"
 #include <iostream>
 #include <vector>
+
+#include "puzzle_04/puzzle.hpp"
+#include "puzzle_04/utils.hpp"
 
 int main() {
     std::vector<std::string> puzzle = get_input_puzzle();

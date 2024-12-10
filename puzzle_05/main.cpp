@@ -1,5 +1,6 @@
-#include "puzzle_05/utils.hpp"
 #include <iostream>
+
+#include "puzzle_05/utils.hpp"
 
 int main() {
     std::vector<std::vector<int>> numbers = get_input_numbers();

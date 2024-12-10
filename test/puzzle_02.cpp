@@ -1,7 +1,6 @@
-#include "array"
-#include "puzzle_02/utils.hpp"
-#include "vector"
 #include <gtest/gtest.h>
+
+#include "puzzle_02/utils.hpp"
 
 TEST(puzzle_02, test_safe_reports) {
     std::vector<std::string> puzzle = {

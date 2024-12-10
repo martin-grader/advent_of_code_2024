@@ -1,8 +1,9 @@
-#include "puzzle_01/puzzle.hpp"
-#include "puzzle_01/utils.hpp"
 #include <array>
 #include <iostream>
 #include <vector>
+
+#include "puzzle_01/puzzle.hpp"
+#include "puzzle_01/utils.hpp"
 
 int main() {
     std::vector<std::array<int, 2>> puzzle = get_puzzle();

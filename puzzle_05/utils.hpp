@@ -1,7 +1,8 @@
-#include "numbers.hpp"
-#include "ordering.hpp"
 #include <algorithm>
 #include <cmath>
+
+#include "numbers.hpp"
+#include "ordering.hpp"
 
 std::vector<std::tuple<int, int>> get_relevant_order_rules(const std::vector<int> &unordered_numbers,
                                                            const std::vector<std::tuple<int, int>> &order_rules) {
