@@ -11,5 +11,6 @@ TEST(puzzle_07, test_pussle0) {
         {192, {17, 8, 14}}, {21037, {9, 7, 18, 13}}, {292, {11, 6, 16, 20}},
     };
     const long int result = get_calibration_result(puzzle);
-    EXPECT_EQ(result, 3749);
+    // EXPECT_EQ(result, 3749);
+    EXPECT_EQ(result, 11387);
 }

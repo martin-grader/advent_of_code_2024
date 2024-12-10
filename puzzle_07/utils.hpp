@@ -39,7 +39,7 @@ class Calculator {
                 result += numbers[i];
             } else if (signs[i] == '|') {
                 std::string combination = std::to_string(result) + std::to_string(numbers[i]);
-                result = std::stoi(combination);
+                result = std::stol(combination);
             } else {
                 result *= numbers[i];
             }
@@ -58,29 +58,40 @@ class Calibrator {
   private:
     std::vector<long int> calibration{};
     std::vector<long int> calibration_data{};
-    std::vector<char> signs{'+', '*'};
+    std::vector<char> signs{'+', '*', '|'};
     std::vector<std::string> sign_permutations{};
     void set_sign_permutations() {
-        size_t base_length = calibration_data.size();
-        for (size_t i = 0; i < base_length; i++) {
+        size_t base_length = calibration_data.size() - 1;
+        std::vector<std::string> permutation_bases = get_permutation_base(base_length, signs);
 
-            std::string s_plus(base_length - i - 1, signs[0]);
-            std::string s_mul(i, signs[1]);
-            std::string s = s_mul + s_plus;
-
+        for (std::string s : permutation_bases)
             do {
                 sign_permutations.push_back(s);
-                std::cout << s << std::endl;
             } while (std::next_permutation(s.begin(), s.end()));
-        }
-    };
+    }
     void set_calibration() {
         for (std::string permutation : sign_permutations) {
             Calculator c(calibration_data, permutation);
             calibration.push_back(c.get_result());
         }
     };
-    // std::string get_permutation_base(int len, std::vector<char> signs) {}
+    std::vector<std::string> get_permutation_base(size_t len, std::vector<char> signs) {
+        std::vector<std::string> bases{};
+        std::string s_or(len, signs[2]);
+        bases.push_back(s_or);
+        for (size_t i = 0; i < len; i++) {
+            std::string s_or(i, signs[2]);
+            for (size_t j = 0; j <= len - i; j++) {
+                std::string s = s_or;
+                std::string s_plus(len - i - j, signs[0]);
+                std::string s_mul(j, signs[1]);
+                s += s_mul + s_plus;
+                std::sort(s.begin(), s.end());
+                bases.push_back(s);
+            }
+        }
+        return bases;
+    }
 };
 
 class Device {
@@ -99,6 +110,7 @@ class Device {
     void check_calibration() {
         Calibrator c(calibration_data);
         for (long int possible_calibration : c.get_calibration()) {
+
             if (possible_calibration == expected_calibration) {
                 calibrated = true;
                 break;
@@ -114,9 +126,7 @@ long int get_calibration_result(const puzzle_type &puzzle) {
         Device d(std::get<1>(calibration), calibration_expected);
         if (d.is_calibrated()) {
             calibration_result += calibration_expected;
-            // std::cout << calibration_result << std::endl;
         }
-        // break;
     }
     return calibration_result;
 }
