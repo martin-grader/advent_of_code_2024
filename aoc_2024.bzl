@@ -5,7 +5,7 @@ load("@rules_cc//cc:defs.bzl", "cc_test")
 def aoc_2024_cc_binary(number):
     cc_binary(
         name = 'puzzle_'+number,
-        deps = ['puzzle_'+number+'_input'],
+        deps = ['puzzle_'+number+'_input', '//utils:aoc_utils'],
         srcs = ['main.cpp'],
         copts = [
             "-Wall",
@@ -26,6 +26,7 @@ def aoc_2024_cc_test(number):
         srcs = ["puzzle_"+number+".cpp"],
         deps = [
             "//puzzle_"+number+":puzzle_"+number+"_input",
+            "//utils:aoc_utils",
             "@googletest//:gtest",
             "@googletest//:gtest_main",
         ],

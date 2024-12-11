@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "utils/mover.hpp"
+
 typedef std::array<size_t, 2> position;
 
 position get_starting_position(const std::vector<std::string> &puzzle) {
@@ -22,8 +24,6 @@ position get_starting_position(const std::vector<std::string> &puzzle) {
     }
     return starting_position;
 }
-
-enum class Direction { left, top, right, bottom };
 
 Direction get_direction(char s) {
     if (s == '^') {
@@ -53,64 +53,6 @@ char get_map_content(const position &sp, const std::vector<std::string> &map) {
     }
     return s;
 }
-
-class Mover {
-  public:
-    Mover(Direction start_dir) : dir(start_dir){};
-    position get_next_position(const position &current_pos) {
-        position next_position{};
-        switch (dir) {
-        case Direction::left:
-            next_position = move_left(current_pos);
-            break;
-        case Direction::right:
-            next_position = move_right(current_pos);
-            break;
-        case Direction::top:
-            next_position = move_forward(current_pos);
-            break;
-        case Direction::bottom:
-            next_position = move_backward(current_pos);
-            break;
-        }
-        return next_position;
-    };
-    void rotate() {
-        switch (dir) {
-        case Direction::left:
-            dir = Direction::top;
-            break;
-        case Direction::right:
-            dir = Direction::bottom;
-            break;
-        case Direction::top:
-            dir = Direction::right;
-            break;
-        case Direction::bottom:
-            dir = Direction::left;
-            break;
-        }
-    };
-
-  private:
-    Direction dir;
-    position move_forward(const position &pos) {
-        const position next_pos{pos[0] - 1, pos[1]};
-        return next_pos;
-    }
-    position move_backward(const position &pos) {
-        const position next_pos{pos[0] + 1, pos[1]};
-        return next_pos;
-    }
-    position move_left(const position &pos) {
-        const position next_pos{pos[0], pos[1] - 1};
-        return next_pos;
-    }
-    position move_right(const position &pos) {
-        const position next_pos{pos[0], pos[1] + 1};
-        return next_pos;
-    }
-};
 
 class Guard {
   public:
