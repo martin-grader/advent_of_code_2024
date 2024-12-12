@@ -7,7 +7,9 @@
 
 int main() {
     const std::vector<std::string> puzzle = get_puzzle();
-    const int sum_of_scores = get_sum_of_scores(puzzle);
-    std::cout << "sum_of_scores = " << sum_of_scores << std::endl;
+    Landscape land(puzzle);
+    land.go_hiking();
+    std::cout << "sum_of_scores = " << land.get_score() << std::endl;
+    std::cout << "ratin  = " << land.get_rating() << std::endl;
     return 0;
 }

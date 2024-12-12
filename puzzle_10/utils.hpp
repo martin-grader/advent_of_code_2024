@@ -45,34 +45,26 @@ class Navigator {
     }
 };
 
-class Hiker {
+class Hiker : public Mover {
   public:
     Hiker(const position &start_pos, const Direction &start_dir, const Map &map)
-        : pos(start_pos), mov(start_dir, pos), map(map), dir(start_dir){};
+        : Mover(start_dir, start_pos), map(map){};
 
-    Map get_map() const { return map; };
-    position get_current_position() const { return pos; };
     std::vector<position> get_path() const { return path; };
     void set_finished() { finished = true; };
     bool is_finished() const { return finished; };
-    bool success() const { return map.get_entry(pos) == '9'; };
-    void set_direction(Direction direction) { dir = direction; };
+    bool success() const { return map.get_entry(get_position()) == '9'; };
     void move() {
         if (!finished) {
-            Mover m(dir, pos);
-            m.move_to_next_position();
-            pos = m.get_position();
-            path.push_back(pos);
+            move_to_next_position();
+            path.push_back(get_position());
         }
     };
 
   private:
-    position pos;
-    Mover mov;
     Map map;
     std::vector<position> path{};
     bool finished{false};
-    Direction dir;
 };
 
 class HikerManager {
@@ -99,12 +91,12 @@ class HikerManager {
         }
         return succeeded;
     }
-    size_t get_score() {
+    size_t get_score() const {
         size_t score{0};
         std::vector<position> destinations;
         for (const Hiker &h : hikers) {
             if (h.success()) {
-                position des = h.get_current_position();
+                position des = h.get_position();
                 if (std::find(destinations.begin(), destinations.end(), des) == destinations.end()) {
                     score++;
                     destinations.push_back(des);
@@ -123,7 +115,7 @@ class HikerManager {
         std::vector<Hiker> new_hikers{};
         for (Hiker &h : hikers) {
             if (!h.is_finished()) {
-                Navigator navi(h.get_map(), h.get_current_position());
+                Navigator navi(map, h.get_position());
                 std::vector<std::tuple<position, Direction>> next_positions = navi.get_next_positions();
                 if (next_positions.size() == 0) {
                     h.set_finished();
@@ -132,7 +124,7 @@ class HikerManager {
                     h.set_direction(std::get<1>(next_positions[0]));
 
                     for (size_t i = 1; i < next_positions.size(); i++) {
-                        Hiker p_new(h.get_current_position(), std::get<1>(next_positions[i]), map);
+                        Hiker p_new(h.get_position(), std::get<1>(next_positions[i]), map);
 
                         new_hikers.push_back(p_new);
                     }
@@ -152,17 +144,36 @@ class HikerManager {
     }
 };
 
-int get_sum_of_scores(const std::vector<std::string> &puzzle) {
-    size_t score{0};
-    Map elevation_map(puzzle);
-    std::vector<position> trailheads = elevation_map.get_all_occurances('0');
-    for (position start : trailheads) {
-        HikerManager pm(start, elevation_map);
-        while (!pm.all_finished()) {
-            pm.advance();
+class Landscape {
+  public:
+    Landscape(const std::vector<std::string> puzzle) : map(puzzle){};
+    void go_hiking() {
+        trailheads = map.get_all_occurances('0');
+        for (const position &start : trailheads) {
+            HikerManager m(start, map);
+            while (!m.all_finished()) {
+                m.advance();
+            }
+            managers.push_back(m);
         }
-        score += pm.get_score();
     }
+    size_t get_score() {
+        size_t score{0};
+        for (const HikerManager &m : managers) {
+            score += m.get_score();
+        }
+        return score;
+    };
+    size_t get_rating() {
+        size_t rating{0};
+        for (const HikerManager &m : managers) {
+            rating += m.get_succeeded_hikers();
+        }
+        return rating;
+    };
 
-    return score;
-}
+  private:
+    Map map;
+    std::vector<position> trailheads{};
+    std::vector<HikerManager> managers{};
+};
