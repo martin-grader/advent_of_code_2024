@@ -16,6 +16,7 @@ def aoc_2024_cc_binary(number):
 def aoc_2024_cc_library(number):
     cc_library(
         name = 'puzzle_'+number+'_input',
+        srcs = native.glob(["*.cpp"], exclude=["main.cpp"]),
         hdrs = native.glob(["*.hpp"]),
         visibility = ['//visibility:public']
     )
