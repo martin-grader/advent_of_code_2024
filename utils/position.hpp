@@ -10,6 +10,14 @@ class Position {
     size_t operator<(const Position &rhs) const { return pos < rhs.pos; }
     void set_row(size_t row) { pos[0] = row; };
     void set_column(size_t col) { pos[1] = col; };
+    Position get_left_neighbour() const { return Position(pos[0] - 1, pos[1]); };
+    Position get_top_left_neighbour() const { return Position(pos[0] - 1, pos[1] - 1); };
+    Position get_top_neighbour() const { return Position(pos[0], pos[1] - 1); };
+    Position get_top_right_neighbour() const { return Position(pos[0] + 1, pos[1] - 1); };
+    Position get_right_neighbour() const { return Position(pos[0] + 1, pos[1]); };
+    Position get_bottom_right_neighbour() const { return Position(pos[0] + 1, pos[1] + 1); };
+    Position get_bottom_neighbour() const { return Position(pos[0], pos[1] + 1); };
+    Position get_bottom_left_neighbour() const { return Position(pos[0] - 1, pos[1] + 1); };
 
   private:
     std::array<size_t, 2> pos{};

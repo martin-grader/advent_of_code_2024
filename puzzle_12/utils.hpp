@@ -42,10 +42,10 @@ class Neighbourhood {
     }
     virtual positions get_possible_neighbours(const Position &pos) {
         positions possible_neighbours{};
-        possible_neighbours.push_back({pos[0] - 1, pos[1]});
-        possible_neighbours.push_back({pos[0] + 1, pos[1]});
-        possible_neighbours.push_back({pos[0], pos[1] + 1});
-        possible_neighbours.push_back({pos[0], pos[1] - 1});
+        possible_neighbours.push_back(pos.get_left_neighbour());
+        possible_neighbours.push_back(pos.get_top_neighbour());
+        possible_neighbours.push_back(pos.get_right_neighbour());
+        possible_neighbours.push_back(pos.get_bottom_neighbour());
         return possible_neighbours;
     }
     void set_neighbours(Position pos, positions area, positions &neighbourhood) {
@@ -66,8 +66,8 @@ class VerticalNeighbourhood : public Neighbourhood {
   private:
     positions get_possible_neighbours(const Position &pos) override {
         positions possible_neighbours{};
-        possible_neighbours.push_back({pos[0] - 1, pos[1]});
-        possible_neighbours.push_back({pos[0] + 1, pos[1]});
+        possible_neighbours.push_back(pos.get_left_neighbour());
+        possible_neighbours.push_back(pos.get_right_neighbour());
         return possible_neighbours;
     };
 };
@@ -79,8 +79,8 @@ class HorizontalNeighbourhood : public Neighbourhood {
   private:
     positions get_possible_neighbours(const Position &pos) override {
         positions possible_neighbours{};
-        possible_neighbours.push_back({pos[0], pos[1] + 1});
-        possible_neighbours.push_back({pos[0], pos[1] - 1});
+        possible_neighbours.push_back(pos.get_top_neighbour());
+        possible_neighbours.push_back(pos.get_bottom_neighbour());
         return possible_neighbours;
     };
 };
@@ -91,11 +91,9 @@ class Region : public Map {
     size_t get_area() const { return count_occurances(plant); };
     size_t get_internal_cross_points() const {
         size_t cross_points{0};
-        for (size_t row = 1; row < rows - 1; row++) {
-            for (size_t col = 1; col < columns - 1; col++) {
-                if (is_cross_point(row, col) && get_entry(row, col) != void_char) {
-                    cross_points++;
-                }
+        for (const Position &pos : get_all_inside_occurances(plant)) {
+            if (is_cross_point(pos)) {
+                cross_points++;
             }
         }
         return cross_points;
@@ -103,21 +101,21 @@ class Region : public Map {
 
   private:
     char plant;
-    bool is_cross_point(size_t row, size_t col) const {
-        bool option_1 = is_cross_point_option_1(row, col);
-        bool option_2 = is_cross_point_option_2(row, col);
+    bool is_cross_point(const Position &pos) const {
+        bool option_1 = is_cross_point_option_1(pos);
+        bool option_2 = is_cross_point_option_2(pos);
         return option_1 || option_2;
     };
-    bool is_cross_point_option_1(size_t row, size_t col) const {
-        bool cond_1 = get_entry(row, col + 1) == void_char;
-        bool cond_2 = get_entry(row + 1, col) == void_char;
-        bool cond_3 = get_entry(row + 1, col + 1) == plant;
+    bool is_cross_point_option_1(const Position &pos) const {
+        bool cond_1 = get_entry(pos.get_right_neighbour()) == void_char;
+        bool cond_2 = get_entry(pos.get_bottom_neighbour()) == void_char;
+        bool cond_3 = get_entry(pos.get_bottom_right_neighbour()) == plant;
         return cond_1 && cond_2 && cond_3;
     }
-    bool is_cross_point_option_2(size_t row, size_t col) const {
-        bool cond_1 = get_entry(row, col + 1) == void_char;
-        bool cond_2 = get_entry(row - 1, col) == void_char;
-        bool cond_3 = get_entry(row - 1, col + 1) == plant;
+    bool is_cross_point_option_2(const Position &pos) const {
+        bool cond_1 = get_entry(pos.get_right_neighbour()) == void_char;
+        bool cond_2 = get_entry(pos.get_top_neighbour()) == void_char;
+        bool cond_3 = get_entry(pos.get_top_right_neighbour()) == plant;
         return cond_1 && cond_2 && cond_3;
     }
 };

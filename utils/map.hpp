@@ -57,13 +57,23 @@ class Map {
         }
         return occurances;
     }
-    std::vector<Position> get_all_occurances(char type) {
+    std::vector<Position> get_all_occurances(char type) const {
         std::vector<Position> occurances{};
         for (size_t row = 0; row < map.size(); row++) {
             for (size_t col = 0; col < map[0].size(); col++) {
                 if (get_entry(row, col) == type) {
-                    const Position pos = {row, col};
-                    occurances.push_back(pos);
+                    occurances.push_back(Position(row, col));
+                }
+            }
+        }
+        return occurances;
+    }
+    std::vector<Position> get_all_inside_occurances(char type) const {
+        std::vector<Position> occurances{};
+        for (size_t row = 1; row < map.size() - 1; row++) {
+            for (size_t col = 1; col < map[0].size() - 1; col++) {
+                if (get_entry(row, col) == type) {
+                    occurances.push_back(Position(row, col));
                 }
             }
         }
