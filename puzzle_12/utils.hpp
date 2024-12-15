@@ -1,10 +1,11 @@
-#include "utils/mover.hpp"
+#include "utils/map.hpp"
+// #include "utils/position.hpp"
 #include <cstdlib>
 #include <map>
 #include <string>
 #include <vector>
 
-typedef std::vector<position> positions;
+typedef std::vector<Position> positions;
 
 class Neighbourhood {
   public:
@@ -23,23 +24,23 @@ class Neighbourhood {
         while (p.size() > 0) {
             positions neighbourhood{p[0]};
             set_neighbours(p[0], p, neighbourhood);
-            for (const position &neighbour : neighbourhood) {
+            for (const Position &neighbour : neighbourhood) {
                 p.erase(std::find(p.begin(), p.end(), neighbour));
             }
             neighbourhoods.push_back(neighbourhood);
         }
     };
-    positions get_neighbours(positions area, position pos) {
+    positions get_neighbours(positions area, Position pos) {
         positions neighbours{};
         positions possible_neighbours = get_possible_neighbours(pos);
-        for (const position &possible_neighbour : possible_neighbours) {
+        for (const Position &possible_neighbour : possible_neighbours) {
             if (std::find(area.begin(), area.end(), possible_neighbour) != area.end()) {
                 neighbours.push_back(possible_neighbour);
             }
         }
         return neighbours;
     }
-    virtual positions get_possible_neighbours(const position &pos) {
+    virtual positions get_possible_neighbours(const Position &pos) {
         positions possible_neighbours{};
         possible_neighbours.push_back({pos[0] - 1, pos[1]});
         possible_neighbours.push_back({pos[0] + 1, pos[1]});
@@ -47,9 +48,9 @@ class Neighbourhood {
         possible_neighbours.push_back({pos[0], pos[1] - 1});
         return possible_neighbours;
     }
-    void set_neighbours(position pos, positions area, positions &neighbourhood) {
+    void set_neighbours(Position pos, positions area, positions &neighbourhood) {
         positions neighbours = get_neighbours(area, pos);
-        for (const position &neighbour : neighbours) {
+        for (const Position &neighbour : neighbours) {
             if (std::find(neighbourhood.begin(), neighbourhood.end(), neighbour) == neighbourhood.end()) {
                 neighbourhood.push_back(neighbour);
                 set_neighbours(neighbour, area, neighbourhood);
@@ -63,7 +64,7 @@ class VerticalNeighbourhood : public Neighbourhood {
     VerticalNeighbourhood(const Map &map, char type) : Neighbourhood(map, type){};
 
   private:
-    positions get_possible_neighbours(const position &pos) override {
+    positions get_possible_neighbours(const Position &pos) override {
         positions possible_neighbours{};
         possible_neighbours.push_back({pos[0] - 1, pos[1]});
         possible_neighbours.push_back({pos[0] + 1, pos[1]});
@@ -76,7 +77,7 @@ class HorizontalNeighbourhood : public Neighbourhood {
     HorizontalNeighbourhood(const Map &map, char type) : Neighbourhood(map, type){};
 
   private:
-    positions get_possible_neighbours(const position &pos) override {
+    positions get_possible_neighbours(const Position &pos) override {
         positions possible_neighbours{};
         possible_neighbours.push_back({pos[0], pos[1] + 1});
         possible_neighbours.push_back({pos[0], pos[1] - 1});

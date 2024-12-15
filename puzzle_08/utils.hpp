@@ -7,11 +7,11 @@
 
 class Antenna {
   public:
-    Antenna(const position &pos, char type) : pos(pos), type(type) {
+    Antenna(const Position &pos, char type) : pos(pos), type(type) {
         x = static_cast<int>(pos[0]);
         y = static_cast<int>(pos[1]);
     }
-    position pos{};
+    Position pos{};
     int x{};
     int y{};
     void print() { std::cout << " Antenna " << type << " (" << x << "," << y << ")" << std::endl; };
@@ -28,11 +28,11 @@ class Antinode {
         set_type();
         set_distance();
     };
-    std::vector<position> get_positions() {
+    std::vector<Position> get_positions() {
         set_positions();
         return positions;
     };
-    position get_position(size_t i) {
+    Position get_position(size_t i) {
         set_positions();
         return positions[i];
     }
@@ -47,8 +47,8 @@ class Antinode {
     Antenna first;
     Antenna second;
     AntinodeType type;
-    position distance{};
-    std::vector<position> positions{};
+    Position distance{};
+    std::vector<Position> positions{};
     void set_type() {
         if (((first.x > second.x) && (first.y > second.y)) || ((first.x < second.x) && (first.y < second.y))) {
             type = AntinodeType::tdlr;
@@ -95,8 +95,8 @@ class AdvancedAntinode : public Antinode {
         size_t y_min = std::min(first.y, second.y) - multiplier * distance[1];
         size_t x_max = std::max(first.x, second.x) + multiplier * distance[0];
         size_t y_max = std::max(first.y, second.y) + multiplier * distance[1];
-        position pos1{};
-        position pos2{};
+        Position pos1{};
+        Position pos2{};
         if (type == AntinodeType::tdlr) {
             pos1 = {x_min, y_min};
             pos2 = {x_max, y_max};
@@ -124,7 +124,7 @@ grouped_antennas get_antennas_on_map(Map &map) {
         for (size_t column = 0; column < map.columns; column++) {
             const char entry = map.get_entry(row, column);
             if (entry != floor) {
-                position pos{row, column};
+                Position pos{row, column};
                 Antenna a(pos, entry);
                 antennas[entry].push_back(a);
             }
@@ -167,7 +167,7 @@ template <typename T> Map get_antinodes_map(const T &all_antinodes, const std::v
     Map antinodes_map(map.size(), map[0].size());
     for (auto [type, antinodes] : all_antinodes) {
         for (auto a : antinodes) {
-            for (position pos : a.get_positions()) {
+            for (Position pos : a.get_positions()) {
                 antinodes_map.add_element_at_position(pos, '#');
             }
         }

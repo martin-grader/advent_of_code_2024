@@ -6,18 +6,18 @@
 
 #include "utils/mover.hpp"
 
-typedef std::array<size_t, 2> position;
+// typedef std::array<size_t, 2> position;
 
-position get_starting_position(const std::vector<std::string> &puzzle) {
-    position starting_position{};
+Position get_starting_position(const std::vector<std::string> &puzzle) {
+    Position starting_position{};
     const char obstacle{'#'};
     const char floor{'.'};
     for (size_t i = 0; i < puzzle.size(); i++) {
         for (size_t j = 0; j < puzzle[i].size(); j++) {
             char c = puzzle[i][j];
             if ((c != obstacle) && (c != floor)) {
-                starting_position[0] = i;
-                starting_position[1] = j;
+                starting_position.set_row(i);
+                starting_position.set_column(j);
                 break;
             }
         }
@@ -37,14 +37,14 @@ Direction get_direction(char s) {
     }
 }
 
-bool is_outside(position pos, const std::vector<std::string> &puzzle) {
+bool is_outside(Position pos, const std::vector<std::string> &puzzle) {
     const bool out_left = pos[0] == std::numeric_limits<size_t>::max();
     const bool out_right = pos[0] == puzzle[0].size();
     const bool out_top = pos[1] == std::numeric_limits<size_t>::max();
     const bool out_bottom = pos[1] == puzzle.size();
     return out_left || out_right || out_top || out_bottom;
 }
-char get_map_content(const position &sp, const std::vector<std::string> &map) {
+char get_map_content(const Position &sp, const std::vector<std::string> &map) {
     char s{};
     if (is_outside(sp, map)) {
         s = '-';
@@ -56,19 +56,19 @@ char get_map_content(const position &sp, const std::vector<std::string> &map) {
 
 class Guard {
   public:
-    Guard(const position &start_point, Direction direction, const std::vector<std::string> &map)
+    Guard(const Position &start_point, Direction direction, const std::vector<std::string> &map)
         : pos(start_point), dir(direction), map(map), m(direction) {
         tiles_visited.push_back(pos);
     }
-    position get_position() const { return pos; };
+    Position get_position() const { return pos; };
     int get_number_tiles_visited() {
-        std::vector<position> v(tiles_visited);
+        std::vector<Position> v(tiles_visited);
         std::sort(v.begin(), v.end());
         int unique_count = std::unique(v.begin(), v.end()) - v.begin();
         return unique_count;
     };
     void move() {
-        const position next_position = m.get_next_position(pos);
+        const Position next_position(m.get_next_position(pos));
         const char tile_type = get_map_content(next_position, map);
         if (tile_type == '#') {
             m.rotate();
@@ -79,11 +79,11 @@ class Guard {
     };
 
   private:
-    position pos;
+    Position pos;
     Direction dir;
     const std::vector<std::string> map;
     Mover m;
-    std::vector<position> tiles_visited;
+    std::vector<Position> tiles_visited;
 };
 
 bool moving_guard_not_withing_limits(Guard &g, const std::vector<std::string> &puzzle, size_t max_movements) {
@@ -96,7 +96,7 @@ bool moving_guard_not_withing_limits(Guard &g, const std::vector<std::string> &p
 }
 
 Guard setup_guard(const std::vector<std::string> &puzzle) {
-    const position start_point = get_starting_position(puzzle);
+    const Position start_point = get_starting_position(puzzle);
     const char start_type = get_map_content(start_point, puzzle);
     Direction dir = get_direction(start_type);
     Guard g(start_point, dir, puzzle);

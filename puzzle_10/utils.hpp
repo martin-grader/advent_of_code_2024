@@ -6,24 +6,24 @@
 
 class Navigator {
   public:
-    Navigator(const Map &map, const position &pos) : map(map), pos(pos) {
+    Navigator(const Map &map, const Position &pos) : map(map), pos(pos) {
         elevation = map.get_entry(pos);
         set_neighbour_positions();
         set_allowed_next_positions();
     };
-    std::vector<std::tuple<position, Direction>> get_next_positions() { return allowed_next_positions; };
+    std::vector<std::tuple<Position, Direction>> get_next_positions() { return allowed_next_positions; };
 
   private:
     Map map;
-    position pos;
+    Position pos;
     char elevation;
     std::vector<Direction> neighbour_directions{Direction::left, Direction::top, Direction::right, Direction::bottom};
-    std::vector<std::tuple<position, Direction>> neighbour_positions;
-    std::vector<std::tuple<position, Direction>> allowed_next_positions;
+    std::vector<std::tuple<Position, Direction>> neighbour_positions;
+    std::vector<std::tuple<Position, Direction>> allowed_next_positions;
     void set_neighbour_positions() {
         for (Direction neighbour_direction : neighbour_directions) {
             Mover m(neighbour_direction);
-            position neighbour_position = m.get_next_position(pos);
+            Position neighbour_position = m.get_next_position(pos);
             neighbour_positions.push_back({neighbour_position, neighbour_direction});
         }
     }
@@ -34,7 +34,7 @@ class Navigator {
             }
         }
     }
-    bool is_possible_position(const position &pos) {
+    bool is_possible_position(const Position &pos) {
         bool is_possible{false};
         if (map.is_inside(pos)) {
             const char next_elevation = map.get_entry(pos);
@@ -47,10 +47,10 @@ class Navigator {
 
 class Hiker : public Mover {
   public:
-    Hiker(const position &start_pos, const Direction &start_dir, const Map &map)
+    Hiker(const Position &start_pos, const Direction &start_dir, const Map &map)
         : Mover(start_dir, start_pos), map(map){};
 
-    std::vector<position> get_path() const { return path; };
+    std::vector<Position> get_path() const { return path; };
     void set_finished() { finished = true; };
     bool is_finished() const { return finished; };
     bool success() const { return map.get_entry(get_position()) == '9'; };
@@ -63,14 +63,14 @@ class Hiker : public Mover {
 
   private:
     Map map;
-    std::vector<position> path{};
+    std::vector<Position> path{};
     bool finished{false};
 };
 
 class HikerManager {
 
   public:
-    HikerManager(const position &start_position, const Map &map) : map(map) {
+    HikerManager(const Position &start_position, const Map &map) : map(map) {
         Hiker first_hiker(start_position, Direction::left, map);
         hikers.push_back(first_hiker);
     }
@@ -93,10 +93,10 @@ class HikerManager {
     }
     size_t get_score() const {
         size_t score{0};
-        std::vector<position> destinations;
+        std::vector<Position> destinations;
         for (const Hiker &h : hikers) {
             if (h.success()) {
-                position des = h.get_position();
+                Position des = h.get_position();
                 if (std::find(destinations.begin(), destinations.end(), des) == destinations.end()) {
                     score++;
                     destinations.push_back(des);
@@ -116,7 +116,7 @@ class HikerManager {
         for (Hiker &h : hikers) {
             if (!h.is_finished()) {
                 Navigator navi(map, h.get_position());
-                std::vector<std::tuple<position, Direction>> next_positions = navi.get_next_positions();
+                std::vector<std::tuple<Position, Direction>> next_positions = navi.get_next_positions();
                 if (next_positions.size() == 0) {
                     h.set_finished();
                     finished_hikers++;
@@ -149,7 +149,7 @@ class Landscape {
     Landscape(const std::vector<std::string> puzzle) : map(puzzle){};
     void go_hiking() {
         trailheads = map.get_all_occurances('0');
-        for (const position &start : trailheads) {
+        for (const Position &start : trailheads) {
             HikerManager m(start, map);
             while (!m.all_finished()) {
                 m.advance();
@@ -174,6 +174,6 @@ class Landscape {
 
   private:
     Map map;
-    std::vector<position> trailheads{};
+    std::vector<Position> trailheads{};
     std::vector<HikerManager> managers{};
 };

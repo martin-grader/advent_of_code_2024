@@ -8,7 +8,7 @@ TEST(puzzle_06, test_starting_position) {
         "....#.....", ".........#", "..........", "..#.......", ".......#..",
         "..........", ".#..^.....", "........#.", "#.........", "......#...",
     };
-    const std::array<size_t, 2> sp = get_starting_position(puzzle);
+    const Position sp = get_starting_position(puzzle);
     EXPECT_EQ(sp[0], 6);
     EXPECT_EQ(sp[1], 4);
 }
