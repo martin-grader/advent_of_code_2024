@@ -44,6 +44,10 @@ class Map {
             map[pos[0]][pos[1]] = element;
         }
     }
+    void add_element_at_position(size_t row, size_t column, char element) {
+        const position pos = {row, column};
+        add_element_at_position(pos, element);
+    }
     int count_occurances(char type) const {
         int occurances{0};
         for (std::string row : map) {
