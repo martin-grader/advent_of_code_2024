@@ -1,0 +1,5 @@
+load("//:aoc_2024.bzl", "aoc_2024_cc_binary")
+load("//:aoc_2024.bzl", "aoc_2024_cc_library")
+
+aoc_2024_cc_binary("15")
+aoc_2024_cc_library("15")

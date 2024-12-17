@@ -1,11 +1,13 @@
 #include "utils/map.hpp"
 
-enum class Direction { left, top, right, bottom };
+enum class Direction { left = '<', top = '^', right = '>', bottom = 'v' };
 
 class Mover {
   public:
     Mover(Direction start_dir) : dir(start_dir){};
     Mover(Direction start_dir, const Position &start_pos) : dir(start_dir), pos_internal(start_pos){};
+    Mover(const Position &start_pos) : pos_internal(start_pos){};
+    Position get_next_position() { return get_next_position(pos_internal); };
     Position get_next_position(const Position &current_pos) {
         Position next_Position{};
         switch (dir) {
@@ -47,6 +49,7 @@ class Mover {
     Position get_position() const { return pos_internal; };
     Direction get_direction() const { return dir; };
     void set_direction(const Direction &direction) { dir = std::move(direction); };
+    void set_direction(char next_direction) { dir = static_cast<Direction>(next_direction); };
 
   private:
     Direction dir;
