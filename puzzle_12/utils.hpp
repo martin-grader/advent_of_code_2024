@@ -9,14 +9,14 @@ typedef std::vector<Position> positions;
 
 class Neighbourhood {
   public:
-    Neighbourhood(const Map &map, char type) : map(map), type(type){};
+    Neighbourhood(const Map<char> &map, char type) : map(map), type(type){};
     std::vector<positions> get_neighbourhoods() {
         set_neighbourhood();
         return neighbourhoods;
     };
 
   private:
-    Map map;
+    Map<char> map;
     char type;
     std::vector<positions> neighbourhoods{};
     void set_neighbourhood() {
@@ -61,7 +61,7 @@ class Neighbourhood {
 
 class VerticalNeighbourhood : public Neighbourhood {
   public:
-    VerticalNeighbourhood(const Map &map, char type) : Neighbourhood(map, type){};
+    VerticalNeighbourhood(const Map<char> &map, char type) : Neighbourhood(map, type){};
 
   private:
     positions get_possible_neighbours(const Position &pos) override {
@@ -74,7 +74,7 @@ class VerticalNeighbourhood : public Neighbourhood {
 
 class HorizontalNeighbourhood : public Neighbourhood {
   public:
-    HorizontalNeighbourhood(const Map &map, char type) : Neighbourhood(map, type){};
+    HorizontalNeighbourhood(const Map<char> &map, char type) : Neighbourhood(map, type){};
 
   private:
     positions get_possible_neighbours(const Position &pos) override {
@@ -85,7 +85,7 @@ class HorizontalNeighbourhood : public Neighbourhood {
     };
 };
 
-class Region : public Map {
+class Region : public Map<char> {
   public:
     Region(char type, positions p, size_t rows, size_t columns) : Map(type, p, rows, columns), plant(type){};
     size_t get_area() const { return count_occurances(plant); };
@@ -120,7 +120,7 @@ class Region : public Map {
     }
 };
 
-class HorizontalFence : public Map {
+class HorizontalFence : public Map<char> {
   public:
     HorizontalFence(const Region &region) : Map(region.rows + 1, region.columns + 1), region(region) {
         set_horizontal_fences();
@@ -155,7 +155,7 @@ class HorizontalFence : public Map {
         }
     }
 };
-class VerticalFence : public Map {
+class VerticalFence : public Map<char> {
   public:
     VerticalFence(const Region &region) : Map(region.rows + 1, region.columns + 1), region(region) {
         set_vertical_fences();
@@ -227,7 +227,7 @@ class Garden {
     }
 
   private:
-    Map map;
+    Map<char> map;
     size_t garden_rows;
     size_t garden_columns;
     std::map<char, std::vector<std::tuple<Region, HorizontalFence, VerticalFence>>> regions;

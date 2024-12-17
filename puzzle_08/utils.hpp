@@ -78,10 +78,10 @@ class Antinode {
 
 class AdvancedAntinode : public Antinode {
   public:
-    AdvancedAntinode(const Antenna &a, const Antenna &b, const Map &map) : Antinode(a, b), map(map){};
+    AdvancedAntinode(const Antenna &a, const Antenna &b, const Map<char> &map) : Antinode(a, b), map(map){};
 
   private:
-    Map map;
+    Map<char> map;
     void set_positions() override {
         positions.push_back(first.pos);
         positions.push_back(second.pos);
@@ -117,7 +117,7 @@ typedef std::map<char, std::vector<Antenna>> grouped_antennas;
 typedef std::map<char, std::vector<Antinode>> grouped_antinodes;
 typedef std::map<char, std::vector<AdvancedAntinode>> grouped_advanced_antinodes;
 
-grouped_antennas get_antennas_on_map(Map &map) {
+grouped_antennas get_antennas_on_map(Map<char> &map) {
     grouped_antennas antennas{};
     const char floor{'.'};
     for (size_t row = 0; row < map.rows; row++) {
@@ -148,7 +148,8 @@ grouped_antinodes get_all_antinodes(const grouped_antennas &antennas_all_types) 
     return antinodes;
 }
 
-grouped_advanced_antinodes get_all_advanced_antinodes(const grouped_antennas &antennas_all_types, const Map &map) {
+grouped_advanced_antinodes get_all_advanced_antinodes(const grouped_antennas &antennas_all_types,
+                                                      const Map<char> &map) {
     grouped_advanced_antinodes antinodes;
     for (auto [type, antennas_this_type] : antennas_all_types) {
         std::vector antennas(antennas_this_type);
@@ -163,7 +164,7 @@ grouped_advanced_antinodes get_all_advanced_antinodes(const grouped_antennas &an
     return antinodes;
 }
 
-template <typename T> Map get_antinodes_map(const T &all_antinodes, const std::vector<std::string> map) {
+template <typename T> Map<char> get_antinodes_map(const T &all_antinodes, const std::vector<std::string> map) {
     Map antinodes_map(map.size(), map[0].size());
     for (auto [type, antinodes] : all_antinodes) {
         for (auto a : antinodes) {

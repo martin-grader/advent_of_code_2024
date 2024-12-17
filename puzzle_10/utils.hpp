@@ -6,7 +6,7 @@
 
 class Navigator {
   public:
-    Navigator(const Map &map, const Position &pos) : map(map), pos(pos) {
+    Navigator(const Map<char> &map, const Position &pos) : map(map), pos(pos) {
         elevation = map.get_entry(pos);
         set_neighbour_positions();
         set_allowed_next_positions();
@@ -14,7 +14,7 @@ class Navigator {
     std::vector<std::tuple<Position, Direction>> get_next_positions() { return allowed_next_positions; };
 
   private:
-    Map map;
+    Map<char> map;
     Position pos;
     char elevation;
     std::vector<Direction> neighbour_directions{Direction::left, Direction::top, Direction::right, Direction::bottom};
@@ -47,7 +47,7 @@ class Navigator {
 
 class Hiker : public Mover {
   public:
-    Hiker(const Position &start_pos, const Direction &start_dir, const Map &map)
+    Hiker(const Position &start_pos, const Direction &start_dir, const Map<char> &map)
         : Mover(start_dir, start_pos), map(map){};
 
     std::vector<Position> get_path() const { return path; };
@@ -62,7 +62,7 @@ class Hiker : public Mover {
     };
 
   private:
-    Map map;
+    Map<char> map;
     std::vector<Position> path{};
     bool finished{false};
 };
@@ -70,7 +70,7 @@ class Hiker : public Mover {
 class HikerManager {
 
   public:
-    HikerManager(const Position &start_position, const Map &map) : map(map) {
+    HikerManager(const Position &start_position, const Map<char> &map) : map(map) {
         Hiker first_hiker(start_position, Direction::left, map);
         hikers.push_back(first_hiker);
     }
@@ -107,7 +107,7 @@ class HikerManager {
     }
 
   private:
-    Map map;
+    Map<char> map;
     size_t finished_hikers{0};
     std::vector<Hiker> hikers{};
     std::vector<Hiker> paths_finished{};
@@ -173,7 +173,7 @@ class Landscape {
     };
 
   private:
-    Map map;
+    Map<char> map;
     std::vector<Position> trailheads{};
     std::vector<HikerManager> managers{};
 };
