@@ -66,8 +66,8 @@ class VerticalNeighbourhood : public Neighbourhood {
   private:
     positions get_possible_neighbours(const Position &pos) override {
         positions possible_neighbours{};
-        possible_neighbours.push_back(pos.get_left_neighbour());
-        possible_neighbours.push_back(pos.get_right_neighbour());
+        possible_neighbours.push_back(pos.get_top_neighbour());
+        possible_neighbours.push_back(pos.get_bottom_neighbour());
         return possible_neighbours;
     };
 };
@@ -79,8 +79,8 @@ class HorizontalNeighbourhood : public Neighbourhood {
   private:
     positions get_possible_neighbours(const Position &pos) override {
         positions possible_neighbours{};
-        possible_neighbours.push_back(pos.get_top_neighbour());
-        possible_neighbours.push_back(pos.get_bottom_neighbour());
+        possible_neighbours.push_back(pos.get_left_neighbour());
+        possible_neighbours.push_back(pos.get_right_neighbour());
         return possible_neighbours;
     };
 };
