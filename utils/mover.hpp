@@ -1,7 +1,5 @@
 #include "utils/map.hpp"
 
-enum class Direction { left = '<', top = '^', right = '>', bottom = 'v' };
-
 class Mover {
   public:
     Mover(Direction start_dir) : dir(start_dir){};
@@ -102,11 +100,120 @@ class TargetMover : public Mover {
 class TargetMoverFactory {
   public:
     TargetMoverFactory(const Map<char> &map, char target_element) : map(map), target_element(target_element){};
-    TargetMover get_hiker(const Position &start_pos, const Direction &start_dir) const {
+    TargetMover get_mover(const Position &start_pos, const Direction &start_dir) const {
         return TargetMover(start_pos, start_dir, map, target_element);
     };
 
   private:
     Map<char> map;
     char target_element{};
+};
+
+class Navigator {
+  public:
+    Navigator(const Map<char> &map) : map(map){};
+    path get_next_positions(const Position &pos) const {
+        path neighbour_positions = get_neighbour_positions(pos);
+        path allowed_next_positions = get_allowed_next_positions(pos, neighbour_positions);
+        return allowed_next_positions;
+    };
+
+  private:
+    Map<char> map;
+    std::vector<Direction> neighbour_directions{Direction::left, Direction::top, Direction::right, Direction::bottom};
+    path get_neighbour_positions(const Position &pos) const {
+        path neighbour_positions{};
+        for (Direction neighbour_direction : neighbour_directions) {
+            Mover m(neighbour_direction);
+            Position neighbour_position = m.get_next_position(pos);
+            PathElement p(neighbour_position, neighbour_direction);
+            neighbour_positions.push_back(p);
+        }
+        return neighbour_positions;
+    }
+    path get_allowed_next_positions(const Position &pos, const path &neighbour_positions) const {
+        path allowed_next_positions{};
+        for (const PathElement &p : neighbour_positions) {
+            if (is_possible_position(pos, p.get_position())) {
+                allowed_next_positions.push_back(p);
+            }
+        }
+        return allowed_next_positions;
+    }
+    bool is_possible_position(const Position &pos, const Position &next_pos) const {
+        bool is_possible{false};
+        if (map.is_inside(next_pos)) {
+            const char elevation = map.get_entry(pos);
+            const char next_elevation = map.get_entry(next_pos);
+            const bool height_difference_ok = next_elevation == elevation + 1;
+            is_possible = height_difference_ok;
+        }
+        return is_possible;
+    }
+};
+
+class TargetMoverManager {
+
+  public:
+    TargetMoverManager(const Position &start_position, const Map<char> &map, char target_element)
+        : map(map), tmf(map, target_element), navi(map) {
+        TargetMover first_mover = tmf.get_mover(start_position, Direction::left);
+        active_movers.push_back(first_mover);
+    }
+    void advance() {
+        add_new_movers();
+        move_all_movers();
+        retire_succeded_movers();
+        check_for_finished_movers();
+        remove_finished_movers();
+    }
+    bool all_finished() const { return active_movers.empty(); };
+    size_t get_number_of_succeeded_movers() const { return succeeded_movers.size(); }
+    std::vector<TargetMover> get_succeeded_movers() const { return succeeded_movers; }
+
+  private:
+    Map<char> map;
+    TargetMoverFactory tmf;
+    Navigator navi;
+
+    std::vector<TargetMover> active_movers{};
+    std::vector<TargetMover> succeeded_movers{};
+    void add_new_movers() {
+        std::vector<TargetMover> new_movers{};
+        for (TargetMover &h : active_movers) {
+            path next_positions = navi.get_next_positions(h.get_position());
+            h.set_direction(next_positions[0].get_direction());
+
+            for (size_t i = 1; i < next_positions.size(); i++) {
+                TargetMover p_new = tmf.get_mover(h.get_position(), next_positions[i].get_direction());
+
+                new_movers.push_back(p_new);
+            }
+        }
+        for (TargetMover nh : new_movers) {
+            active_movers.push_back(nh);
+        }
+    }
+    void check_for_finished_movers() {
+        for (TargetMover &h : active_movers) {
+            path next_positions = navi.get_next_positions(h.get_position());
+            if (next_positions.size() == 0) {
+                h.set_finished();
+            }
+        }
+    }
+    void move_all_movers() {
+        for (TargetMover &h : active_movers) {
+            h.move();
+        }
+    }
+    void remove_finished_movers() {
+        active_movers.erase(std::remove_if(active_movers.begin(), active_movers.end(),
+                                           [](const TargetMover &h) { return h.is_finished(); }),
+                            active_movers.end());
+    }
+    void retire_succeded_movers() {
+        std::copy_if(active_movers.begin(), active_movers.end(), std::back_inserter(succeeded_movers),
+                     [](const TargetMover &h) { return h.success(); });
+    }
 };

@@ -1,6 +1,7 @@
 #include <array>
 #include <cstddef>
 #include <iostream>
+#include <vector>
 
 class Position {
   public:
@@ -33,3 +34,17 @@ class Position {
   private:
     std::array<size_t, 2> pos{};
 };
+
+enum class Direction { left = '<', top = '^', right = '>', bottom = 'v' };
+class PathElement {
+  public:
+    PathElement(const Position &pos, const Direction &dir) : pos(pos), dir(dir) {}
+    Position get_position() const { return pos; };
+    Direction get_direction() const { return dir; };
+
+  private:
+    Position pos;
+    Direction dir;
+};
+
+typedef std::vector<PathElement> path;
