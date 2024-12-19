@@ -1,9 +1,18 @@
 #include "utils/map.hpp"
+#include <cassert>
+#include <cstdlib>
+#include <memory>
 
 class Mover {
   public:
     Mover(Direction start_dir) : dir(start_dir){};
-    Mover(Direction start_dir, const Position &start_pos) : dir(start_dir), pos_internal(start_pos){};
+    Mover(Direction start_dir, const Position &start_pos) : dir(start_dir), pos_internal(start_pos) {
+        history.push_back(PathElement(start_pos, start_dir));
+    };
+    Mover(Direction start_dir, const Position &start_pos, const path previous_history)
+        : dir(start_dir), pos_internal(start_pos) {
+        history = previous_history;
+    };
     Mover(const Position &start_pos) : pos_internal(start_pos){};
     Position get_next_position() { return get_next_position(pos_internal); };
     Position get_next_position(const Position &current_pos) {
@@ -43,15 +52,18 @@ class Mover {
     void move_to_next_position() {
         const Position current_pos(pos_internal);
         pos_internal = get_next_position(current_pos);
+        history.push_back(PathElement(pos_internal, dir));
     }
     Position get_position() const { return pos_internal; };
     Direction get_direction() const { return dir; };
+    path get_history() const { return history; };
     void set_direction(const Direction &direction) { dir = std::move(direction); };
     void set_direction(char next_direction) { dir = static_cast<Direction>(next_direction); };
 
   private:
     Direction dir;
     Position pos_internal;
+    path history{};
     Position move_forward(const Position &pos) {
         // std::cout << "moving top" << std::endl;
         const Position next_pos{pos[0] - 1, pos[1]};
@@ -76,6 +88,9 @@ class Mover {
 
 class TargetMover : public Mover {
   public:
+    TargetMover(const Position &start_pos, const Direction &start_dir, const Map<char> &map, char target_element,
+                const path &history)
+        : Mover(start_dir, start_pos, history), map(map), target_element(target_element){};
     TargetMover(const Position &start_pos, const Direction &start_dir, const Map<char> &map, char target_element)
         : Mover(start_dir, start_pos), map(map), target_element(target_element){};
 
@@ -100,6 +115,9 @@ class TargetMover : public Mover {
 class TargetMoverFactory {
   public:
     TargetMoverFactory(const Map<char> &map, char target_element) : map(map), target_element(target_element){};
+    TargetMover get_mover(const Position &start_pos, const Direction &start_dir, const path &history) const {
+        return TargetMover(start_pos, start_dir, map, target_element, history);
+    };
     TargetMover get_mover(const Position &start_pos, const Direction &start_dir) const {
         return TargetMover(start_pos, start_dir, map, target_element);
     };
@@ -112,16 +130,16 @@ class TargetMoverFactory {
 class Navigator {
   public:
     Navigator(const Map<char> &map) : map(map){};
-    path get_next_positions(const Position &pos) const {
-        path neighbour_positions = get_neighbour_positions(pos);
+    path get_next_positions(const Position &pos, const Direction &dir) const {
+        path neighbour_positions = get_neighbour_positions(pos, dir);
         path allowed_next_positions = get_allowed_next_positions(pos, neighbour_positions);
         return allowed_next_positions;
     };
 
-  private:
+  protected:
     Map<char> map;
     std::vector<Direction> neighbour_directions{Direction::left, Direction::top, Direction::right, Direction::bottom};
-    path get_neighbour_positions(const Position &pos) const {
+    path get_neighbour_positions(const Position &pos, const Direction &dir) const {
         path neighbour_positions{};
         for (Direction neighbour_direction : neighbour_directions) {
             Mover m(neighbour_direction);
@@ -140,63 +158,62 @@ class Navigator {
         }
         return allowed_next_positions;
     }
-    bool is_possible_position(const Position &pos, const Position &next_pos) const {
-        bool is_possible{false};
-        if (map.is_inside(next_pos)) {
-            const char elevation = map.get_entry(pos);
-            const char next_elevation = map.get_entry(next_pos);
-            const bool height_difference_ok = next_elevation == elevation + 1;
-            is_possible = height_difference_ok;
-        }
-        return is_possible;
-    }
+    virtual bool is_possible_position(const Position &pos, const Position &next_pos) const = 0;
 };
 
 class TargetMoverManager {
 
   public:
-    TargetMoverManager(const Position &start_position, const Map<char> &map, char target_element)
-        : map(map), tmf(map, target_element), navi(map) {
+    TargetMoverManager(const Position &start_position, const Map<char> &map, char target_element,
+                       std::shared_ptr<Navigator> navi)
+        : map(map), tmf(map, target_element), navi(std::move(navi)) {
         TargetMover first_mover = tmf.get_mover(start_position, Direction::left);
         active_movers.push_back(first_mover);
+        add_new_movers(true);
     }
     void advance() {
-        add_new_movers();
         move_all_movers();
         retire_succeded_movers();
         check_for_finished_movers();
         remove_finished_movers();
+        add_new_movers(false);
     }
     bool all_finished() const { return active_movers.empty(); };
     size_t get_number_of_succeeded_movers() const { return succeeded_movers.size(); }
     std::vector<TargetMover> get_succeeded_movers() const { return succeeded_movers; }
 
-  private:
+  protected:
     Map<char> map;
     TargetMoverFactory tmf;
-    Navigator navi;
+    std::shared_ptr<Navigator> navi;
 
     std::vector<TargetMover> active_movers{};
     std::vector<TargetMover> succeeded_movers{};
-    void add_new_movers() {
+    virtual void add_new_movers(bool allow_opposite_direction = false) {
+        std::cout << "active movers on adding = " << active_movers.size() << std::endl;
         std::vector<TargetMover> new_movers{};
         for (TargetMover &h : active_movers) {
-            path next_positions = navi.get_next_positions(h.get_position());
+            path next_positions = navi->get_next_positions(h.get_position(), h.get_direction());
+            assert(next_positions.size() > 0);
+            Direction this_direction = h.get_direction();
             h.set_direction(next_positions[0].get_direction());
 
             for (size_t i = 1; i < next_positions.size(); i++) {
-                TargetMover p_new = tmf.get_mover(h.get_position(), next_positions[i].get_direction());
+                Direction next_direction = next_positions[i].get_direction();
+                if (!is_opposite_direction(this_direction, next_direction) || allow_opposite_direction) {
+                    TargetMover p_new = tmf.get_mover(h.get_position(), next_direction, h.get_history());
 
-                new_movers.push_back(p_new);
+                    new_movers.push_back(p_new);
+                }
             }
         }
         for (TargetMover nh : new_movers) {
             active_movers.push_back(nh);
         }
     }
-    void check_for_finished_movers() {
+    virtual void check_for_finished_movers() {
         for (TargetMover &h : active_movers) {
-            path next_positions = navi.get_next_positions(h.get_position());
+            path next_positions = navi->get_next_positions(h.get_position(), h.get_direction());
             if (next_positions.size() == 0) {
                 h.set_finished();
             }
@@ -211,9 +228,20 @@ class TargetMoverManager {
         active_movers.erase(std::remove_if(active_movers.begin(), active_movers.end(),
                                            [](const TargetMover &h) { return h.is_finished(); }),
                             active_movers.end());
+        std::cout << "active movers = " << active_movers.size() << std::endl;
     }
     void retire_succeded_movers() {
         std::copy_if(active_movers.begin(), active_movers.end(), std::back_inserter(succeeded_movers),
                      [](const TargetMover &h) { return h.success(); });
+    }
+    bool is_opposite_direction(const Direction &lhs, const Direction &rhs) const {
+        if (lhs == Direction::left) {
+            return rhs == Direction::right;
+        } else if (lhs == Direction::top) {
+            return rhs == Direction::bottom;
+        } else if (lhs == Direction::right) {
+            return rhs == Direction::left;
+        } else
+            return rhs == Direction::top;
     }
 };

@@ -1,16 +1,35 @@
 #include "utils/mover.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <memory>
 #include <string>
 #include <vector>
+
+class RaindeerNavigator : public Navigator {
+  public:
+    RaindeerNavigator(const Map<char> &map) : Navigator(map){};
+
+  private:
+    bool is_possible_position(const Position &pos, const Position &next_pos) const override {
+        bool is_possible{false};
+        if (map.is_inside(next_pos)) {
+            const char elevation = map.get_entry(pos);
+            const char next_elevation = map.get_entry(next_pos);
+            const bool height_difference_ok = next_elevation == elevation + 1;
+            is_possible = height_difference_ok;
+        }
+        return is_possible;
+    }
+};
 
 class Landscape {
   public:
     Landscape(const std::vector<std::string> puzzle) : map(puzzle){};
     void go_hiking() {
         trailheads = map.get_all_occurances('0');
+        std::shared_ptr<Navigator> navi = std::make_shared<RaindeerNavigator>(map);
         for (const Position &start : trailheads) {
-            TargetMoverManager m(start, map, '9');
+            TargetMoverManager m(start, map, '9', navi);
             while (!m.all_finished()) {
                 m.advance();
             }

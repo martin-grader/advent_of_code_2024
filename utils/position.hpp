@@ -41,6 +41,9 @@ class PathElement {
     PathElement(const Position &pos, const Direction &dir) : pos(pos), dir(dir) {}
     Position get_position() const { return pos; };
     Direction get_direction() const { return dir; };
+    bool operator==(const PathElement &rhs) const {
+        return ((pos == rhs.get_position()) && (dir == rhs.get_direction()));
+    };
 
   private:
     Position pos;
