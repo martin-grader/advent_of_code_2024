@@ -20,6 +20,7 @@ class MazeTestSmall : public testing::Test
     std::unique_ptr<Maze> maze;
 };
 TEST_F(MazeTestSmall, test_score) { EXPECT_EQ(maze->get_score(), 7036); }
+TEST_F(MazeTestSmall, test_tiles) { EXPECT_EQ(maze->get_best_tiles(), 45); }
 
 class MazeTestBig : public testing::Test
 
@@ -38,3 +39,4 @@ class MazeTestBig : public testing::Test
     std::unique_ptr<Maze> maze;
 };
 TEST_F(MazeTestBig, test_score) { EXPECT_EQ(maze->get_score(), 11048); }
+TEST_F(MazeTestBig, test_tiles) { EXPECT_EQ(maze->get_best_tiles(), 64); }

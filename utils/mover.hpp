@@ -190,7 +190,7 @@ class TargetMoverManager {
     std::vector<TargetMover> active_movers{};
     std::vector<TargetMover> succeeded_movers{};
     virtual void add_new_movers(bool allow_opposite_direction = false) {
-        std::cout << "active movers on adding = " << active_movers.size() << std::endl;
+        // std::cout << "active movers on adding = " << active_movers.size() << std::endl;
         std::vector<TargetMover> new_movers{};
         for (TargetMover &h : active_movers) {
             path next_positions = navi->get_next_positions(h.get_position(), h.get_direction());
@@ -228,7 +228,7 @@ class TargetMoverManager {
         active_movers.erase(std::remove_if(active_movers.begin(), active_movers.end(),
                                            [](const TargetMover &h) { return h.is_finished(); }),
                             active_movers.end());
-        std::cout << "active movers = " << active_movers.size() << std::endl;
+        // std::cout << "active movers = " << active_movers.size() << std::endl;
     }
     void retire_succeded_movers() {
         std::copy_if(active_movers.begin(), active_movers.end(), std::back_inserter(succeeded_movers),

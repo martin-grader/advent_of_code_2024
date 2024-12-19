@@ -10,5 +10,6 @@ int main() {
     Maze maze(puzzle);
     maze.go_raindeers();
     std::cout << "sum_of_scores = " << maze.get_score() << std::endl;
+    std::cout << "sum_of_best_tiles = " << maze.get_best_tiles() << std::endl;
     return 0;
 }

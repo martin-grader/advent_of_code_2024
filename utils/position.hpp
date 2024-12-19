@@ -7,7 +7,7 @@ class Position {
   public:
     Position(){};
     Position(size_t row, size_t column) : pos({row, column}){};
-    void print() { std::cout << pos[0] << "," << pos[1] << std::endl; };
+    void print() const { std::cout << pos[0] << "," << pos[1] << std::endl; };
     size_t operator[](size_t idx) const { return pos[idx]; }
     size_t operator==(const Position &rhs) const { return pos == rhs.pos; }
     size_t operator!=(const Position &rhs) const { return ((pos[0] != rhs.pos[0]) || (pos[1] != rhs.pos[1])); }
