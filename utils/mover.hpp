@@ -75,3 +75,38 @@ class Mover {
         return next_pos;
     }
 };
+
+class TargetMover : public Mover {
+  public:
+    TargetMover(const Position &start_pos, const Direction &start_dir, const Map<char> &map, char target_element)
+        : Mover(start_dir, start_pos), map(map), target_element(target_element){};
+
+    std::vector<Position> get_path() const { return path; };
+    void set_finished() { finished = true; };
+    bool is_finished() const { return finished; };
+    bool success() const { return map.get_entry(get_position()) == target_element; };
+    void move() {
+        if (!finished) {
+            move_to_next_position();
+            path.push_back(get_position());
+        }
+    };
+
+  private:
+    Map<char> map;
+    std::vector<Position> path{};
+    bool finished{false};
+    char target_element{};
+};
+
+class TargetMoverFactory {
+  public:
+    TargetMoverFactory(const Map<char> &map, char target_element) : map(map), target_element(target_element){};
+    TargetMover get_hiker(const Position &start_pos, const Direction &start_dir) const {
+        return TargetMover(start_pos, start_dir, map, target_element);
+    };
+
+  private:
+    Map<char> map;
+    char target_element{};
+};

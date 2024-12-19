@@ -94,7 +94,7 @@ template <typename T = char> class Map {
         }
         return occurances;
     }
-    bool is_inside(Position pos) {
+    bool is_inside(Position pos) const {
         const bool inside_rows = pos[0] < rows;
         const bool inside_columns = pos[1] < columns;
         return inside_rows && inside_columns;

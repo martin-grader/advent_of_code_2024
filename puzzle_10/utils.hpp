@@ -4,40 +4,42 @@
 #include <string>
 #include <vector>
 
+typedef std::vector<std::tuple<Position, Direction>> path;
 class Navigator {
   public:
-    Navigator(const Map<char> &map, const Position &pos) : map(map), pos(pos) {
-        elevation = map.get_entry(pos);
-        set_neighbour_positions();
-        set_allowed_next_positions();
+    Navigator(const Map<char> &map) : map(map){};
+    std::vector<std::tuple<Position, Direction>> get_next_positions(const Position &pos) const {
+        path neighbour_positions = get_neighbour_positions(pos);
+        path allowed_next_positions = get_allowed_next_positions(pos, neighbour_positions);
+        return allowed_next_positions;
     };
-    std::vector<std::tuple<Position, Direction>> get_next_positions() { return allowed_next_positions; };
 
   private:
     Map<char> map;
-    Position pos;
-    char elevation;
     std::vector<Direction> neighbour_directions{Direction::left, Direction::top, Direction::right, Direction::bottom};
-    std::vector<std::tuple<Position, Direction>> neighbour_positions;
-    std::vector<std::tuple<Position, Direction>> allowed_next_positions;
-    void set_neighbour_positions() {
+    path get_neighbour_positions(const Position &pos) const {
+        path neighbour_positions{};
         for (Direction neighbour_direction : neighbour_directions) {
             Mover m(neighbour_direction);
             Position neighbour_position = m.get_next_position(pos);
             neighbour_positions.push_back({neighbour_position, neighbour_direction});
         }
+        return neighbour_positions;
     }
-    void set_allowed_next_positions() {
-        for (auto [pos, d] : neighbour_positions) {
-            if (is_possible_position(pos)) {
+    path get_allowed_next_positions(const Position &pos, const path &neighbour_positions) const {
+        path allowed_next_positions{};
+        for (auto [next_pos, d] : neighbour_positions) {
+            if (is_possible_position(pos, next_pos)) {
                 allowed_next_positions.push_back({pos, d});
             }
         }
+        return allowed_next_positions;
     }
-    bool is_possible_position(const Position &pos) {
+    bool is_possible_position(const Position &pos, const Position &next_pos) const {
         bool is_possible{false};
-        if (map.is_inside(pos)) {
-            const char next_elevation = map.get_entry(pos);
+        if (map.is_inside(next_pos)) {
+            const char elevation = map.get_entry(pos);
+            const char next_elevation = map.get_entry(next_pos);
             const bool height_difference_ok = next_elevation == elevation + 1;
             is_possible = height_difference_ok;
         }
@@ -45,33 +47,12 @@ class Navigator {
     }
 };
 
-class Hiker : public Mover {
-  public:
-    Hiker(const Position &start_pos, const Direction &start_dir, const Map<char> &map)
-        : Mover(start_dir, start_pos), map(map){};
-
-    std::vector<Position> get_path() const { return path; };
-    void set_finished() { finished = true; };
-    bool is_finished() const { return finished; };
-    bool success() const { return map.get_entry(get_position()) == '9'; };
-    void move() {
-        if (!finished) {
-            move_to_next_position();
-            path.push_back(get_position());
-        }
-    };
-
-  private:
-    Map<char> map;
-    std::vector<Position> path{};
-    bool finished{false};
-};
-
 class HikerManager {
 
   public:
-    HikerManager(const Position &start_position, const Map<char> &map) : map(map) {
-        Hiker first_hiker(start_position, Direction::left, map);
+    HikerManager(const Position &start_position, const Map<char> &map, char target_element)
+        : map(map), tmf(map, target_element), navi(map) {
+        TargetMover first_hiker = tmf.get_hiker(start_position, Direction::left);
         hikers.push_back(first_hiker);
     }
     void advance() {
@@ -84,7 +65,7 @@ class HikerManager {
     };
     size_t get_succeeded_hikers() const {
         size_t succeeded{0};
-        for (const Hiker &h : hikers) {
+        for (const TargetMover &h : hikers) {
             if (h.success()) {
                 succeeded++;
             }
@@ -94,7 +75,7 @@ class HikerManager {
     size_t get_score() const {
         size_t score{0};
         std::vector<Position> destinations;
-        for (const Hiker &h : hikers) {
+        for (const TargetMover &h : hikers) {
             if (h.success()) {
                 Position des = h.get_position();
                 if (std::find(destinations.begin(), destinations.end(), des) == destinations.end()) {
@@ -108,15 +89,17 @@ class HikerManager {
 
   private:
     Map<char> map;
+    TargetMoverFactory tmf;
+    Navigator navi;
+
     size_t finished_hikers{0};
-    std::vector<Hiker> hikers{};
-    std::vector<Hiker> paths_finished{};
+    std::vector<TargetMover> hikers{};
+    std::vector<TargetMover> paths_finished{};
     void add_new_hikers() {
-        std::vector<Hiker> new_hikers{};
-        for (Hiker &h : hikers) {
+        std::vector<TargetMover> new_hikers{};
+        for (TargetMover &h : hikers) {
             if (!h.is_finished()) {
-                Navigator navi(map, h.get_position());
-                std::vector<std::tuple<Position, Direction>> next_positions = navi.get_next_positions();
+                path next_positions = navi.get_next_positions(h.get_position());
                 if (next_positions.size() == 0) {
                     h.set_finished();
                     finished_hikers++;
@@ -124,19 +107,19 @@ class HikerManager {
                     h.set_direction(std::get<1>(next_positions[0]));
 
                     for (size_t i = 1; i < next_positions.size(); i++) {
-                        Hiker p_new(h.get_position(), std::get<1>(next_positions[i]), map);
+                        TargetMover p_new = tmf.get_hiker(h.get_position(), std::get<1>(next_positions[i]));
 
                         new_hikers.push_back(p_new);
                     }
                 }
             }
         }
-        for (Hiker nh : new_hikers) {
+        for (TargetMover nh : new_hikers) {
             hikers.push_back(nh);
         }
     }
     void move_all_hikers() {
-        for (Hiker &h : hikers) {
+        for (TargetMover &h : hikers) {
             if (!h.is_finished()) {
                 h.move();
             }
@@ -150,7 +133,7 @@ class Landscape {
     void go_hiking() {
         trailheads = map.get_all_occurances('0');
         for (const Position &start : trailheads) {
-            HikerManager m(start, map);
+            HikerManager m(start, map, '9');
             while (!m.all_finished()) {
                 m.advance();
             }
