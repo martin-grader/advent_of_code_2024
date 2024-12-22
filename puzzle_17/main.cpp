@@ -13,6 +13,5 @@ int main() {
     Computer c(reg);
     c.execute(program);
     std::cout << "program output = " << c.get_output() << std::endl;
-    // 0,7,2,6,4,2,7,2,5 wrong
     return 0;
 }

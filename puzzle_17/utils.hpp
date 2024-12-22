@@ -14,9 +14,9 @@ class Computer {
     size_t get_reg(char reg_adr) { return reg[reg_adr]; };
     void execute(const std::vector<size_t> &program) {
         assert(program.size() % 2 == 0);
-        for (size_t i = 0; i < program.size(); i += 2) {
-            const size_t opcode = program[i];
-            const size_t literal_operand = program[i + 1];
+        for (size_t ip = 0; ip < program.size(); ip += 2) {
+            const size_t opcode = program[ip];
+            const size_t literal_operand = program[ip + 1];
             const size_t combo_operand = get_combo_operand(literal_operand);
             switch (opcode) {
             case 0:
@@ -29,7 +29,7 @@ class Computer {
                 bst(combo_operand);
                 break;
             case 3:
-                jnz(literal_operand, i);
+                jnz(literal_operand, ip);
                 break;
             case 4:
                 bxc(combo_operand);
@@ -72,7 +72,7 @@ class Computer {
         }
     }
     void dv(size_t input, char reg_adr) {
-        reg[reg_adr] = trunc(static_cast<double>(reg[reg_adr]) / static_cast<double>(std::pow(2, input)));
+        reg[reg_adr] = trunc(static_cast<double>(reg['A']) / static_cast<double>(std::pow(2, input)));
     }
     void bxl(size_t input) { reg['B'] = input xor reg['B']; };
     void bxc(size_t input) { reg['B'] = reg['B'] xor reg['C']; };
