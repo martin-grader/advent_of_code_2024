@@ -11,7 +11,11 @@ def aoc_2024_cc_binary(number):
             "-Wall",
             "-std=c++17",
             "-Wno-trigraphs",
+            #"-fopenmp",
+            #"-Ofast",
+            #"-march=native"
             ],
+        #linkopts = ["-lgomp"]
     )
 def aoc_2024_cc_library(number):
     cc_library(
@@ -35,5 +39,6 @@ def aoc_2024_cc_test(number):
             "-Wall",
             "-std=c++17",
             "-Wno-trigraphs",
+            "-fopenmp",
             ],
     )
