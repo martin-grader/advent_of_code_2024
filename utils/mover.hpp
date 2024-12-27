@@ -103,6 +103,9 @@ class TargetMover : public Mover {
             move_to_next_position();
             path.push_back(get_position());
         }
+        if (success()) {
+            set_finished();
+        }
     };
 
   private:
