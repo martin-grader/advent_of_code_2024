@@ -18,6 +18,7 @@ aoc_2024_cc_test("15")
 aoc_2024_cc_test("16")
 aoc_2024_cc_test("17")
 aoc_2024_cc_test("18")
+aoc_2024_cc_test("19")
 
 
 
