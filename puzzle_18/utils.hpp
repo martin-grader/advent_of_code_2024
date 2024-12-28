@@ -1,10 +1,6 @@
 #include "utils/mover.hpp"
-#include <algorithm>
 #include <cstdlib>
 #include <limits>
-#include <memory>
-#include <set>
-#include <string>
 #include <vector>
 
 class Scorer {
@@ -13,49 +9,49 @@ class Scorer {
     size_t calc_path_score(const path &history) { return history.size() - 1; }
 };
 
-class YourNavigator : public Navigator {
+class YourNavigator : public Navigator<char> {
   public:
-    YourNavigator(const Map<char> &map) : Navigator(map){};
+    YourNavigator(const std::shared_ptr<Map<char>> map) : Navigator(map){};
 
   private:
     bool is_possible_position(const Position &pos, const Position &next_pos) const override {
         bool is_possible{false};
-        if (map.is_inside(next_pos)) {
-            const char next_element = map.get_entry(next_pos);
+        if (map->is_inside(next_pos)) {
+            const char next_element = map->get_entry(next_pos);
             is_possible = next_element != '#';
         }
         return is_possible;
     }
 };
-class YourManager : public TargetMoverManager {
+class YourManager : public TargetMoverManager<> {
 
   public:
-    YourManager(const Position &start_position, const Map<char> &map, char target_element,
-                std::shared_ptr<Navigator> navi)
-        : TargetMoverManager(start_position, map, target_element, navi), left_direction_scores(map.rows, map.columns),
-          top_direction_scores(map.rows, map.columns), right_direction_scores(map.rows, map.columns),
-          bottom_direction_scores(map.rows, map.columns){};
+    YourManager(const Position &start_position, const std::shared_ptr<Map<char>> map, char target_element,
+                std::shared_ptr<Navigator<>> navi)
+        : TargetMoverManager(start_position, map, target_element, navi), left_direction_scores(map->rows, map->columns),
+          top_direction_scores(map->rows, map->columns), right_direction_scores(map->rows, map->columns),
+          bottom_direction_scores(map->rows, map->columns){};
 
     void print() {
         std::cout << "---------------------\n";
-        for (TargetMover &h : active_movers) {
+        for (TargetMover<> &h : active_movers) {
             path history = h.get_history();
-            Map h_map(map);
+            std::shared_ptr<Map<char>> h_map = std::make_shared<Map<char>>(*map);
             for (const PathElement &p : history) {
-                h_map.add_element_at_position(p.get_position(), static_cast<char>(p.get_direction()));
+                h_map->add_element_at_position(p.get_position(), static_cast<char>(p.get_direction()));
             }
-            h_map.print();
+            h_map->print();
         }
     };
     void print_succeeded() const {
         std::cout << "---------------------\n";
-        for (const TargetMover &h : succeeded_movers) {
+        for (const TargetMover<> &h : succeeded_movers) {
             path history = h.get_history();
-            Map h_map(map);
+            std::shared_ptr<Map<char>> h_map = std::make_shared<Map<char>>(*map);
             for (const PathElement &p : history) {
-                h_map.add_element_at_position(p.get_position(), static_cast<char>(p.get_direction()));
+                h_map->add_element_at_position(p.get_position(), static_cast<char>(p.get_direction()));
             }
-            h_map.print();
+            h_map->print();
         }
     };
 
@@ -67,7 +63,7 @@ class YourManager : public TargetMoverManager {
     Map<size_t> bottom_direction_scores;
     std::vector<std::tuple<PathElement, size_t>> scored_histories{};
     void check_for_finished_movers() override {
-        for (TargetMover &h : active_movers) {
+        for (TargetMover<> &h : active_movers) {
             // std::cout << active_movers.size() << std::endl;
             path next_positions = navi->get_next_positions(h.get_position(), h.get_direction());
             if (next_positions.size() == 0) {
@@ -108,17 +104,17 @@ class YourManager : public TargetMoverManager {
 class Maze {
   public:
     Maze(size_t rows, size_t columns, const std::vector<std::vector<size_t>> bytes, size_t time_passed)
-        : map(rows, columns), time_passed(time_passed), bytes(bytes) {
+        : map(std::make_shared<Map<>>(rows, columns)), time_passed(time_passed), bytes(bytes) {
         for (size_t i = 0; i < time_passed; i++) {
-            map.add_element_at_position(bytes[i][1], bytes[i][0], '#');
-            map.add_element_at_position(0, 0, 'S');
-            map.add_element_at_position(rows - 1, columns - 1, 'E');
+            map->add_element_at_position(bytes[i][1], bytes[i][0], '#');
+            map->add_element_at_position(0, 0, 'S');
+            map->add_element_at_position(rows - 1, columns - 1, 'E');
         }
     };
     void go() {
-        trailheads = map.get_all_occurances('S');
+        trailheads = map->get_all_occurances('S');
         for (const Position &start : trailheads) {
-            std::shared_ptr<Navigator> navi = std::make_shared<YourNavigator>(map);
+            std::shared_ptr<Navigator<>> navi = std::make_shared<YourNavigator>(map);
             YourManager m(start, map, 'E', navi);
             while (!m.all_finished()) {
                 m.advance();
@@ -129,7 +125,7 @@ class Maze {
     size_t get_score() {
         size_t score{std::numeric_limits<size_t>::max()};
         for (const YourManager &m : managers) {
-            for (const TargetMover &r : m.get_succeeded_movers()) {
+            for (const TargetMover<> &r : m.get_succeeded_movers()) {
                 const size_t this_score = scorer.calc_path_score(r.get_history());
                 score = std::min(this_score, score);
             }
@@ -141,7 +137,7 @@ class Maze {
         size_t element_to_add = time_passed - 1;
         while (moover_finished_with_succes && (element_to_add < bytes.size())) {
             element_to_add++;
-            map.add_element_at_position(bytes[element_to_add][1], bytes[element_to_add][0], '#');
+            map->add_element_at_position(bytes[element_to_add][1], bytes[element_to_add][0], '#');
             managers.clear();
             go();
             for (const YourManager &m : managers) {
@@ -155,7 +151,7 @@ class Maze {
     }
 
   private:
-    Map<char> map;
+    std::shared_ptr<Map<char>> map;
     size_t time_passed;
     std::vector<std::vector<size_t>> bytes{};
     Scorer scorer{};

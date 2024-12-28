@@ -86,18 +86,19 @@ class Mover {
     }
 };
 
-class TargetMover : public Mover {
+template <typename T = char> class TargetMover : public Mover {
   public:
-    TargetMover(const Position &start_pos, const Direction &start_dir, const Map<char> &map, char target_element,
-                const path &history)
-        : Mover(start_dir, start_pos, history), map(map), target_element(target_element){};
-    TargetMover(const Position &start_pos, const Direction &start_dir, const Map<char> &map, char target_element)
-        : Mover(start_dir, start_pos), map(map), target_element(target_element){};
+    TargetMover(const Position &start_pos, const Direction &start_dir, const std::shared_ptr<Map<T>> map,
+                char target_element, const path &history)
+        : Mover(start_dir, start_pos, history), map(std::move(map)), target_element(target_element){};
+    TargetMover(const Position &start_pos, const Direction &start_dir, const std::shared_ptr<Map<T>> map,
+                char target_element)
+        : Mover(start_dir, start_pos), map(std::move(map)), target_element(target_element){};
 
     std::vector<Position> get_path() const { return path; };
     void set_finished() { finished = true; };
     bool is_finished() const { return finished; };
-    bool success() const { return map.get_entry(get_position()) == target_element; };
+    bool success() const { return map->get_entry(get_position()) == target_element; };
     void move() {
         if (!finished) {
             move_to_next_position();
@@ -109,30 +110,31 @@ class TargetMover : public Mover {
     };
 
   private:
-    Map<char> map;
+    std::shared_ptr<Map<T>> map;
     std::vector<Position> path{};
     bool finished{false};
     char target_element{};
 };
 
-class TargetMoverFactory {
+template <typename T = char> class TargetMoverFactory {
   public:
-    TargetMoverFactory(const Map<char> &map, char target_element) : map(map), target_element(target_element){};
-    TargetMover get_mover(const Position &start_pos, const Direction &start_dir, const path &history) const {
+    TargetMoverFactory(const std::shared_ptr<Map<T>> map, char target_element)
+        : map(std::move(map)), target_element(target_element){};
+    TargetMover<T> get_mover(const Position &start_pos, const Direction &start_dir, const path &history) const {
         return TargetMover(start_pos, start_dir, map, target_element, history);
     };
-    TargetMover get_mover(const Position &start_pos, const Direction &start_dir) const {
+    TargetMover<T> get_mover(const Position &start_pos, const Direction &start_dir) const {
         return TargetMover(start_pos, start_dir, map, target_element);
     };
 
   private:
-    Map<char> map;
+    std::shared_ptr<Map<T>> map;
     char target_element{};
 };
 
-class Navigator {
+template <typename T = char> class Navigator {
   public:
-    Navigator(const Map<char> &map) : map(map){};
+    Navigator(const std::shared_ptr<Map<T>> map) : map(std::move(map)){};
     path get_next_positions(const Position &pos, const Direction &dir) const {
         path neighbour_positions = get_neighbour_positions(pos, dir);
         path allowed_next_positions = get_allowed_next_positions(pos, neighbour_positions);
@@ -140,7 +142,7 @@ class Navigator {
     };
 
   protected:
-    Map<char> map;
+    std::shared_ptr<Map<T>> map;
     std::vector<Direction> neighbour_directions{Direction::left, Direction::top, Direction::right, Direction::bottom};
     path get_neighbour_positions(const Position &pos, const Direction &dir) const {
         path neighbour_positions{};
@@ -164,12 +166,12 @@ class Navigator {
     virtual bool is_possible_position(const Position &pos, const Position &next_pos) const = 0;
 };
 
-class TargetMoverManager {
+template <typename T = char> class TargetMoverManager {
 
   public:
-    TargetMoverManager(const Position &start_position, const Map<char> &map, char target_element,
-                       std::shared_ptr<Navigator> navi)
-        : map(map), tmf(map, target_element), navi(std::move(navi)) {
+    TargetMoverManager(const Position &start_position, const std::shared_ptr<Map<T>> map, char target_element,
+                       std::shared_ptr<Navigator<T>> navi)
+        : /* map(std::move(map)),*/ tmf(map, target_element), navi(std::move(navi)) {
         TargetMover first_mover = tmf.get_mover(start_position, Direction::left);
         active_movers.push_back(first_mover);
         add_new_movers(true);
@@ -183,19 +185,18 @@ class TargetMoverManager {
     }
     bool all_finished() const { return active_movers.empty(); };
     size_t get_number_of_succeeded_movers() const { return succeeded_movers.size(); }
-    std::vector<TargetMover> get_succeeded_movers() const { return succeeded_movers; }
+    std::vector<TargetMover<T>> get_succeeded_movers() const { return succeeded_movers; }
 
   protected:
-    Map<char> map;
-    TargetMoverFactory tmf;
-    std::shared_ptr<Navigator> navi;
+    std::shared_ptr<Map<T>> map;
+    TargetMoverFactory<T> tmf;
+    std::shared_ptr<Navigator<T>> navi;
 
-    std::vector<TargetMover> active_movers{};
-    std::vector<TargetMover> succeeded_movers{};
+    std::vector<TargetMover<T>> active_movers{};
+    std::vector<TargetMover<T>> succeeded_movers{};
     virtual void add_new_movers(bool allow_opposite_direction = false) {
-        // std::cout << "active movers on adding = " << active_movers.size() << std::endl;
-        std::vector<TargetMover> new_movers{};
-        for (TargetMover &h : active_movers) {
+        std::vector<TargetMover<T>> new_movers{};
+        for (TargetMover<T> &h : active_movers) {
             path next_positions = navi->get_next_positions(h.get_position(), h.get_direction());
             assert(next_positions.size() > 0);
             Direction this_direction = h.get_direction();
@@ -215,7 +216,7 @@ class TargetMoverManager {
         }
     }
     virtual void check_for_finished_movers() {
-        for (TargetMover &h : active_movers) {
+        for (TargetMover<T> &h : active_movers) {
             path next_positions = navi->get_next_positions(h.get_position(), h.get_direction());
             if (next_positions.size() == 0) {
                 h.set_finished();
@@ -223,19 +224,18 @@ class TargetMoverManager {
         }
     }
     void move_all_movers() {
-        for (TargetMover &h : active_movers) {
+        for (TargetMover<T> &h : active_movers) {
             h.move();
         }
     }
     void remove_finished_movers() {
         active_movers.erase(std::remove_if(active_movers.begin(), active_movers.end(),
-                                           [](const TargetMover &h) { return h.is_finished(); }),
+                                           [](const TargetMover<T> &h) { return h.is_finished(); }),
                             active_movers.end());
-        // std::cout << "active movers = " << active_movers.size() << std::endl;
     }
     void retire_succeded_movers() {
         std::copy_if(active_movers.begin(), active_movers.end(), std::back_inserter(succeeded_movers),
-                     [](const TargetMover &h) { return h.success(); });
+                     [](const TargetMover<T> &h) { return h.success(); });
     }
     bool is_opposite_direction(const Direction &lhs, const Direction &rhs) const {
         if (lhs == Direction::left) {

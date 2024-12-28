@@ -38,6 +38,7 @@ template <typename T = char> class Map {
         }
         set_unique_map_elements();
     };
+    // Map(const Map &rhs) : rows(rhs.rows), columns(rhs.columns), map(rhs.map) { set_unique_map_elements(); };
     size_t rows{};
     size_t columns{};
     T get_entry(size_t row, size_t column) const { return map[row][column]; };

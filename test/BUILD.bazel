@@ -18,3 +18,20 @@ aoc_2024_cc_test("15")
 aoc_2024_cc_test("16")
 aoc_2024_cc_test("17")
 aoc_2024_cc_test("18")
+
+
+
+cc_test(
+    name = "map_test",
+    size = "small",
+    srcs = ["map_test.cpp"],
+    deps = [
+        "//utils:aoc_utils",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+    copts = [
+        "-Wall",
+        "-std=c++17",
+        ],
+)
